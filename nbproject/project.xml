@@ -5,7 +5,7 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>OnePitRian</name>
             <source-roots>
-                <root id="src.dir"/>
+                <root id="src.the_ONE_Simulator-master.dir"/>
             </source-roots>
             <test-roots/>
         </data>
