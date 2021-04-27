@@ -5,7 +5,6 @@
  */
 package routing;
 
-import com.sun.org.apache.bcel.internal.generic.DCONST;
 import core.Connection;
 import core.DTNHost;
 import core.Message;
@@ -46,7 +45,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
-
+        System.out.println("node : " + peer + " trust : " + trustValue);
         List<Message> psn = saveMsg.get(peer);
 
         //panggil method verifikasi
@@ -121,7 +120,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public void update(DTNHost thisHost) {
-//        System.out.println("node : " + thisHost + " trust : " + trustValue);
+
     }
 
     @Override
@@ -138,37 +137,45 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     public void verifikasiPesan(List<Message> psn) {
         //gruping pesan
         Map<List<String>, List<Message>> grupPesan = new HashMap<>(); //simpan pesan ke dalam grup pake Map, key : properti hash; value : id pesan
-        List<Message> pesan = null;
-        for (Message m : psn) { //baca isi list psn satu persatu
-            List<String> hash = (List<String>) m.getProperty("hash"); //ambil property hash yang ada di tiap pesan
+        List<Message> pesan;
+        try {
 
-            if (!grupPesan.containsKey(hash)) { //cek tidak ada grup pesan dengan hash tertentu
-                pesan = new ArrayList<Message>(); // buat arraylist untuk menampung pesan dalam grup dengan hash yang baru
-            } else {
-                pesan = grupPesan.get(hash);    //jika ada, get hash dari grup pesan
+            for (Message m : psn) { //baca isi list psn satu persatu
+                List<String> hashMsg = (List<String>) m.getProperty("hash"); //ambil property hash yang ada di tiap pesan
 
+                if (!grupPesan.containsKey(hashMsg)) { //cek tidak ada grup pesan dengan hash tertentu
+                    pesan = new ArrayList<Message>(); // buat arraylist untuk menampung pesan dalam grup dengan hash yang baru
+                } else {
+                    pesan = grupPesan.get(hashMsg);    //jika ada, get hash dari grup pesan
+
+                }
+
+                pesan.add(m); //tambahkan message dalam pesan
+                grupPesan.put(hashMsg, pesan); //tambahkan hash dan id pesan dalam grup pesan
+//                System.out.println("grup" + grupPesan);
+
+                for (Message cekPsn : pesan) {
+                    System.out.println(pesan);
+                    List<String> msgCek = new ArrayList<>();
+                    msgCek.add(cekPsn.toString());
+                    List<String> hashSatu = input.MerkleTree.getNewMsgList(msgCek);
+                    List<String> hashDua = input.MerkleTree.hashRekursif(hashSatu);
+//                    System.out.println("hash " + hashDua);
+                    String hashtoString = hashDua.toString(); //nilai hash yang dihashinh dari pesan yang ada digrup pesan
+                    String hashMsgtoString = hashMsg.toString(); //nilai hash yang ada diproperti pesan
+
+                    if (hashtoString != hashMsgtoString) {
+                        trustValue = trustValue - 0.1;
+                    } else {
+//                        trustValue =  trustValue;
+                    }
+                }
             }
-            pesan.add(m); //tambahkan message dalam pesan
-            grupPesan.put(hash, pesan); //tambahkan hash dan id pesan dalam grup pesan
-            System.out.println("grup" + grupPesan);
 
+        } catch (Exception e) {
         }
-        //deteksi 1
-//        for (Message cekPsn : pesan) {
-//            System.out.println(pesan);
-//            List<String> msgCek = new ArrayList<>();
-//            msgCek.add(cekPsn.toString());
-//            List<String> hashSatu = input.MerkleTree.getNewMsgList(msgCek);
-//            List<String> hashDua = input.MerkleTree.hashRekursif(hashSatu);
-//            System.out.println("hash " + hashDua);
-//                String hashtoString = hashDua.toString();
-//                if (hashtoString != hash) {
-//                    trustValue = trustValue + 0.1;
-//                } else {
-//                    trustValue = trustValue - 0.1;
-//                }
-//        }
 
+        //deteksi 1
     }
 
 }
