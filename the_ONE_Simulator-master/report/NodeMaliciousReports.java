@@ -5,6 +5,7 @@
  */
 package report;
 
+import routing.NodeMaliciousHelper;
 import core.DTNHost;
 import core.Message;
 import core.SimScenario;

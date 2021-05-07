@@ -3,12 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package report;
+package routing;
 
-import core.Message;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import core.*;
+import java.util.*;
 
 /**
  *
