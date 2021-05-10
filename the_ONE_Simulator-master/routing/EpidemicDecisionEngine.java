@@ -67,7 +67,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         verifikasiPesan(psn);
 
         //deteksi 1
-        System.out.println("node : " + peer + " trust : " + trustValue);
+//        System.out.println("node : " + peer + " trust : " + trustValue);
         saveMsg.remove(peer);
 
     }
@@ -89,11 +89,11 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override //buat sifat malicious
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
-        List<Message> psn = saveMsg.get(from);
-        try {
-            psn.add(m);
-        } catch (Exception e) {
-        }
+//        List<Message> psn = saveMsg.get(from);
+//        try {
+//            psn.add(m);
+//        } catch (Exception e) {
+//        }
 
         /**
          * buat sifat malicious
@@ -116,7 +116,6 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         } else {
             return m.getTo() != thisHost;
         }
-
     }
 
     @Override
@@ -132,7 +131,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return false;
     }
 
     @Override
@@ -181,7 +180,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 //                    for (int j = i + 1; j < temp.size() - j; j++) {
 
                 for (int i = 0; i < temp.size() - 1; i++) {
-                    for (int j = i+1; j < temp.size(); j++) {
+                    for (int j = i + 1; j < temp.size(); j++) {
                         String str1 = temp.get(i).toString();
                         String str2 = temp.get(j).toString();
                         int m1 = str1.toCharArray().length;

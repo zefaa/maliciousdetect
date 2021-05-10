@@ -73,13 +73,10 @@ public class MessageCreateEventMal extends MessageEvent {
             m.addProperty("hash", hashDua);
             from.createNewMessage(m);
         }
-        //            cetak hash yang dibuat
+     
 //        System.out.println("CREATED");
-//        System.out.println("from : " + from + " " + messages);
-//        System.out.println("");
-//             System.out.println("from :" + from);
-//             System.out.println("\nhash 1="+hashSatu);
-//             System.out.println("\nhash 2="+hashDua);
+//        System.out.println("from : " + from + " " + " to: " + to + messages + " " + "size " + sizeMin + " " + sizeMax);
+
     }
 
     @Override
