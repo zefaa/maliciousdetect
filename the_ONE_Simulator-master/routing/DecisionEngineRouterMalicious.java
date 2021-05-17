@@ -227,7 +227,7 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
         DecisionEngineRouterMalicious otherRouter = (DecisionEngineRouterMalicious) otherNode.getRouter();
         if (con.isUp()) {
             decider.connectionUp(myHost, otherNode);
-      //      pesanKeluar.clear();
+            //      pesanKeluar.clear();
 
             /*
 * This part is a little confusing because there's a problem we have to
@@ -285,8 +285,7 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
     protected void doExchange(Connection con, DTNHost otherHost) {
         conStates.put(con, 1);
         decider.doExchangeForNewConnection(con, otherHost);
-        
-        
+
     }
 
     /**
@@ -365,9 +364,8 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
 // not the final recipient and app doesn't want to drop the message
 // -> put to buffer
 
-
             addToMessages(aMessage, false);
-            
+
 // Determine any other connections to which to forward a message
             findConnectionsForNewMessage(aMessage, from);
         }
@@ -391,14 +389,17 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
         for (Iterator<Tuple<Message, Connection>> i = outgoingMessages.iterator();
                 i.hasNext();) {
             Tuple<Message, Connection> t = i.next();
+            try {
+                if (t.getKey().getId().equals(transferred.getId())
+                        && t.getValue().equals(con)) {
 
-            if (t.getKey().getId().equals(transferred.getId())
-                    && t.getValue().equals(con)) {
-                
-                i.remove();
-                
-                break;
+                    i.remove();
+
+                    break;
+                }
+            } catch (Exception e) {
             }
+
         }
 
         if (decider.shouldDeleteSentMessage(transferred, con.getOtherNode(getHost()))) {
@@ -421,7 +422,6 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
 //    public List<Message> getPesanKeluar() {
 //        return pesanKeluar;
 //    }
-
     @Override
     public void deleteMessage(String id, boolean drop) {
         super.deleteMessage(id, drop);
