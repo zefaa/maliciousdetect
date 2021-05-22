@@ -33,8 +33,9 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     private LinkedList drop = new LinkedList();
     private double trustValue = 0.5;
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>(); // catat pengirim pesan dan pesan yang yang berhasil di transfer per koneksi
-//    List<Message> pesan = null;
-//    List<String> hashMsg = null;
+     private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
+    List<Message> pesan = null;
+    List<String> hashMsg = null;
 
     public EpidemicDecisionEngine(Settings s) {
 //        if (s.contains(TOTAL_CONTACT_INTERVAL)) {
@@ -42,6 +43,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 //        } else {
 //            interval = DEFAULT_CONTACT_INTERVAL;
 //        }
+
     }
 
     public EpidemicDecisionEngine(EpidemicDecisionEngine proto) {
@@ -56,6 +58,8 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
         List<Message> pesan = new ArrayList<Message>();
         saveMsg.put(peer, pesan);
+        
+        saveMsgThis.put(thisHost, pesan);
     }
 
     @Override
@@ -64,7 +68,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         List<Message> psn = saveMsg.get(peer);
 
         //panggil method verifikasi
-//        verifikasiPesan(psn);
+        verifikasiPesan(psn);
         //deteksi 1
         try {
             if (thisHost.toString().startsWith("mal")) {
@@ -72,7 +76,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
                 for (Message m : psn) {
                     if (thisHost != m.getFrom() && thisHost != m.getTo()) {
 
-                        thisHost.deleteMessage(m.toString(), false);
+                        thisHost.deleteMessage(m.toString(), true);
                     }
                 }
             }
@@ -90,6 +94,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public boolean newMessage(Message m) {
+
         return true;
     }
 
@@ -101,6 +106,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     @Override //buat sifat malicious
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
         List<Message> psn = saveMsg.get(from);
+
         try {
             psn.add(m);
         } catch (Exception e) {
@@ -131,7 +137,21 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
+        int mSize = m.getSize();
+        int nrMsg = otherHost.getNrofMessages();
+        int bOth = otherHost.getRouter().getFreeBufferSize();
+        List<Message> shSend = saveMsgThis.get(thisHost);
+      
+        System.out.println("msg "+ shSend + " = "+shSend.size());
+            
+        
+            
+        
+        
+        
+
         return true;
+
     }
 
     @Override
@@ -146,6 +166,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public void update(DTNHost thisHost) {
+
     }
 
     @Override
@@ -159,26 +180,26 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     }
 
     //method verifikasi
-//    public void verifikasiPesan(List<Message> psn) {
-//        //gruping pesan
-//        Map<List<String>, List<Message>> grupPesan = new HashMap<>(); //simpan pesan ke dalam grup pake Map, key : properti hash; value : id pesan
-//
-//        try {
-//
-//            for (Message m : psn) { //baca isi list psn satu persatu
-//                hashMsg = (List<String>) m.getProperty("hash"); //ambil property hash yang ada di tiap pesan
-//
-//                if (!grupPesan.containsKey(hashMsg)) { //cek tidak ada grup pesan dengan hash tertentu
-//                    pesan = new ArrayList<Message>(); // buat arraylist untuk menampung pesan dalam grup dengan hash yang baru
-//                } else {
-//                    pesan = grupPesan.get(hashMsg);    //jika ada, get hash dari grup pesan
-//                }
-//
-//                pesan.add(m); //tambahkan message dalam pesan
-//
-//                grupPesan.put(hashMsg, pesan); //tambahkan hash dan id pesan dalam grup pesan
-//
-//            }
+    public void verifikasiPesan(List<Message> psn) {
+        //gruping pesan
+        Map<List<String>, List<Message>> grupPesan = new HashMap<>(); //simpan pesan ke dalam grup pake Map, key : properti hash; value : id pesan
+
+        try {
+
+            for (Message m : psn) { //baca isi list psn satu persatu
+                hashMsg = (List<String>) m.getProperty("hash"); //ambil property hash yang ada di tiap pesan
+
+                if (!grupPesan.containsKey(hashMsg)) { //cek tidak ada grup pesan dengan hash tertentu
+                    pesan = new ArrayList<Message>(); // buat arraylist untuk menampung pesan dalam grup dengan hash yang baru
+                } else {
+                    pesan = grupPesan.get(hashMsg);    //jika ada, get hash dari grup pesan
+                }
+
+                pesan.add(m); //tambahkan message dalam pesan
+
+                grupPesan.put(hashMsg, pesan); //tambahkan hash dan id pesan dalam grup pesan
+
+            }
 //            for (Map.Entry<List<String>, List<Message>> entry : grupPesan.entrySet()) {
 //                List<String> key = entry.getKey();
 //                List<Message> value = entry.getValue();
@@ -239,6 +260,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 //                }
 //            }
 //            //deteksi 1
-//        } catch (Exception e) {
-//        }
+        } catch (Exception e) {
+        }
+    }
 }

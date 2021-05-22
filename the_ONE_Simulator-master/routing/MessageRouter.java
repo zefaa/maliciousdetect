@@ -277,6 +277,7 @@ public abstract class MessageRouter {
      */
     public int getNrofMessages() {
         return this.messages.size();
+
     }
 
     /**
