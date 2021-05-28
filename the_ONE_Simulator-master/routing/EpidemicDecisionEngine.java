@@ -33,9 +33,11 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     private LinkedList drop = new LinkedList();
     private double trustValue = 0.5;
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>(); // catat pengirim pesan dan pesan yang yang berhasil di transfer per koneksi
-     private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
+    private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
     List<Message> pesan = null;
     List<String> hashMsg = null;
+    ArrayList <Integer> valList;
+    int trysize =0;
 
     public EpidemicDecisionEngine(Settings s) {
 //        if (s.contains(TOTAL_CONTACT_INTERVAL)) {
@@ -58,7 +60,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
         List<Message> pesan = new ArrayList<Message>();
         saveMsg.put(peer, pesan);
-        
+
         saveMsgThis.put(thisHost, pesan);
     }
 
@@ -140,13 +142,16 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         int mSize = m.getSize();
         int nrMsg = otherHost.getNrofMessages();
         int bOth = otherHost.getRouter().getFreeBufferSize();
+        
+        int buf = bOth/mSize;
         List<Message> shSend = saveMsgThis.get(thisHost);
-      
-        System.out.println("msg "+ shSend + " = "+shSend.size());
-            
-        
-            
-        
+
+        shouldSendMessageBuffer(shSend);
+//        int valSize = valList.size();
+        System.out.println("try"+trysize);
+//        if (valSize < buf) {
+//            
+//        }
         
         
 
@@ -177,6 +182,42 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     @Override
     public LinkedList<Message> getNodeMalicious() {
         return drop;
+    }
+
+    //method kirim pesan bdk buffer
+    public void shouldSendMessageBuffer(List<Message> sendMsg) {
+        //gruping pesan
+        Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
+
+        try {
+            for (Message message : sendMsg) {
+                hashMsg = (List<String>) message.getProperty("hash");
+                if (!sendMsgGrup.containsKey(hashMsg)) {
+                    pesan = new ArrayList<Message>();
+
+                } else {
+                    pesan = sendMsgGrup.get(hashMsg);
+                }
+                pesan.add(message);
+                sendMsgGrup.put(hashMsg, pesan);
+                
+
+            }
+           
+          //hitung total size dari pesan yang akan dikirim
+          List<Message> pesanTemp = new ArrayList<>();
+          pesanTemp=sendMsgGrup.get(hashMsg);
+       
+           Map<List<Message>, Integer> conMsg = new HashMap<>();
+           
+           conMsg.put(pesanTemp, pesanTemp.size());
+           trysize=pesanTemp.size();
+           valList = new ArrayList<Integer>(conMsg.values());
+           
+           int valSize = valList.size();
+            System.out.println("gr "+valSize + "psn temp "+pesanTemp.size());
+        } catch (Exception e) {
+        }
     }
 
     //method verifikasi
