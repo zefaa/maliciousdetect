@@ -31,13 +31,13 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     private Double lastRecord = Double.MIN_VALUE;
     private int interval;
     private LinkedList drop = new LinkedList();
-    private double trustValue = 0.5;
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>(); // catat pengirim pesan dan pesan yang yang berhasil di transfer per koneksi
     private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
     List<Message> pesan = null;
     List<String> hashMsg = null;
-    ArrayList <Integer> valList;
-    int trysize =0;
+    ArrayList<Integer> valList;
+    int trysize = 0;
+    double trustVal;
 
     public EpidemicDecisionEngine(Settings s) {
 //        if (s.contains(TOTAL_CONTACT_INTERVAL)) {
@@ -58,10 +58,23 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
     @Override
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
+
+        trustVal = thisHost.getTrustValue(peer);
         List<Message> pesan = new ArrayList<Message>();
         saveMsg.put(peer, pesan);
-
         saveMsgThis.put(thisHost, pesan);
+
+        try {
+
+            for (Message msg : pesan) {
+                if (trustVal >= 0.1) {
+                    shouldSendMessageToHost(msg, peer, thisHost);
+                }
+
+            }
+        } catch (Exception e) {
+        }
+
     }
 
     @Override
@@ -69,48 +82,99 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
         List<Message> psn = saveMsg.get(peer);
 
-        //panggil method verifikasi
-        verifikasiPesan(psn);
         //deteksi 1
         try {
             if (thisHost.toString().startsWith("mal")) {
-
                 for (Message m : psn) {
-                    if (thisHost != m.getFrom() && thisHost != m.getTo()) {
 
-                        thisHost.deleteMessage(m.toString(), true);
+                    if (thisHost != m.getFrom() && thisHost != m.getTo()) {
+                        Random rng = new Random();
+                        int rand = 1 * rng.nextInt() + 0;
+                        switch (rand) {
+                            case 0:
+                                shouldSaveReceivedMessage(m, thisHost, peer);
+                            default:
+                                thisHost.deleteMessage(m.toString(), true);
+                        }
                     }
                 }
             }
         } catch (Exception e) {
         }
 
+        //panggil method verifikasi
+        verifikasiPesan(psn);
+
         saveMsg.remove(peer);
 
+        //deteksi 1
+        try {
+            List<DTNHost> maliciousList = new ArrayList<DTNHost>();
+            for (Message msg : psn) {
+                if (trustVal < 0.1) {
+                    maliciousList.add(peer);
+                    shouldSendMessageToHost(msg, peer, thisHost);
+
+                }
+                //System.out.println("mal " + maliciousList);
+            }
+        } catch (Exception e) {
+        }
+
+        System.out.println("tr " + " " + peer + " " + trustVal);
     }
 
     @Override
-    public void doExchangeForNewConnection(Connection con, DTNHost peer) {
+    public void doExchangeForNewConnection(Connection con, DTNHost peer
+    ) {
 
     }
 
     @Override
-    public boolean newMessage(Message m) {
+    public boolean newMessage(Message m
+    ) {
 
         return true;
     }
 
     @Override
-    public boolean isFinalDest(Message m, DTNHost aHost) {
+    public boolean isFinalDest(Message m, DTNHost aHost
+    ) {
         return m.getTo() == aHost;
     }
 
     @Override //buat sifat malicious
-    public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
+    public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost,
+            DTNHost from
+    ) {
         List<Message> psn = saveMsg.get(from);
+        Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
 
         try {
             psn.add(m);
+
+            for (Message message : psn) {
+                hashMsg = (List<String>) message.getProperty("hash");
+                if (!sendMsgGrup.containsKey(hashMsg)) {
+                    pesan = new ArrayList<Message>();
+
+                } else {
+                    pesan = sendMsgGrup.get(hashMsg);
+                }
+                pesan.add(message);
+                sendMsgGrup.put(hashMsg, pesan);
+            }
+            List<Message> pesanTemp = new ArrayList<>();
+            pesanTemp = sendMsgGrup.get(hashMsg);
+
+            Map<List<Message>, Integer> conMsg = new HashMap<>();
+
+            conMsg.put(pesanTemp, pesanTemp.size());
+            trysize = pesanTemp.size();
+
+            if (trysize == 8) {
+                return m.getTo() != thisHost;
+            }
         } catch (Exception e) {
         }
 
@@ -138,39 +202,58 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     }
 
     @Override
-    public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
+    public boolean shouldSendMessageToHost(Message m, DTNHost otherHost,
+            DTNHost thisHost
+    ) {
         int mSize = m.getSize();
-        int nrMsg = otherHost.getNrofMessages();
+        //int nrMsg = otherHost.getNrofMessages();
         int bOth = otherHost.getRouter().getFreeBufferSize();
-        
-        int buf = bOth/mSize;
-        List<Message> shSend = saveMsgThis.get(thisHost);
 
-        shouldSendMessageBuffer(shSend);
+        int buf = bOth / mSize;
+        List<Message> shSend = saveMsgThis.get(thisHost);
+        List<Message> psn = saveMsg.get(otherHost);
+
+        try {
+//            if (thisHost.toString().startsWith("mal")) {
+//                for (Message message : psn) {
+//                    if (thisHost != message.getFrom() && thisHost != message.getTo()) {
+//                        thisHost.deleteMessage(message.toString(), true);
+//                    }
+//                }
+//            } else {
+            ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
+            int clMethodSize = clMethod.size();
+            if (clMethodSize < buf) {
+                return true;
+            }
+
+        } catch (Exception e) {
+        }
 //        int valSize = valList.size();
-        System.out.println("try"+trysize);
+//        System.out.println("try"+trysize);
 //        if (valSize < buf) {
 //            
 //        }
-        
-        
 
         return true;
 
     }
 
     @Override
-    public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
+    public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost
+    ) {
         return false;
     }
 
     @Override
-    public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
+    public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld
+    ) {
         return false;
     }
 
     @Override
-    public void update(DTNHost thisHost) {
+    public void update(DTNHost thisHost
+    ) {
 
     }
 
@@ -183,12 +266,12 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     public LinkedList<Message> getNodeMalicious() {
         return drop;
     }
-
     //method kirim pesan bdk buffer
-    public void shouldSendMessageBuffer(List<Message> sendMsg) {
+
+    public int shouldSendMessageBuffer(List<Message> sendMsg) {
         //gruping pesan
         Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
-
+        List<Message> pesanTemp = new ArrayList<>();
         try {
             for (Message message : sendMsg) {
                 hashMsg = (List<String>) message.getProperty("hash");
@@ -200,24 +283,23 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
                 }
                 pesan.add(message);
                 sendMsgGrup.put(hashMsg, pesan);
-                
 
             }
-           
-          //hitung total size dari pesan yang akan dikirim
-          List<Message> pesanTemp = new ArrayList<>();
-          pesanTemp=sendMsgGrup.get(hashMsg);
-       
-           Map<List<Message>, Integer> conMsg = new HashMap<>();
-           
-           conMsg.put(pesanTemp, pesanTemp.size());
-           trysize=pesanTemp.size();
-           valList = new ArrayList<Integer>(conMsg.values());
-           
-           int valSize = valList.size();
-            System.out.println("gr "+valSize + "psn temp "+pesanTemp.size());
+
+            //hitung total size dari pesan yang akan dikirim
+            pesanTemp = sendMsgGrup.get(hashMsg);
+
+            Map<List<Message>, Integer> conMsg = new HashMap<>();
+
+            conMsg.put(pesanTemp, pesanTemp.size());
+            trysize = pesanTemp.size();
+            //valList = new ArrayList<Integer>(conMsg.values());
+
+            //int valSize = valList.size();
+//            System.out.println("gr "+valSize + "psn temp "+pesanTemp.size());
         } catch (Exception e) {
         }
+        return pesanTemp.size();
     }
 
     //method verifikasi
@@ -241,65 +323,66 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
                 grupPesan.put(hashMsg, pesan); //tambahkan hash dan id pesan dalam grup pesan
 
             }
-//            for (Map.Entry<List<String>, List<Message>> entry : grupPesan.entrySet()) {
-//                List<String> key = entry.getKey();
-//                List<Message> value = entry.getValue();
-//
-////                System.out.println("val : " + value);
-//                List<Message> temp = value;
-////                for (int i = 0; i < temp.size() - 1; i++) {
-////                    for (int j = i + 1; j < temp.size() - j; j++) {
-//
+            for (Map.Entry<List<String>, List<Message>> entry : grupPesan.entrySet()) {
+                List<String> key = entry.getKey();
+                List<Message> value = entry.getValue();
+
+//                System.out.println("val : " + value);
+                List<Message> temp = value;
 //                for (int i = 0; i < temp.size() - 1; i++) {
-//                    for (int j = i + 1; j < temp.size(); j++) {
-//                        String str1 = temp.get(i).toString();
-//                        String str2 = temp.get(j).toString();
-//                        int m1 = str1.toCharArray().length;
-//                        int s1 = Integer.parseInt(str1.substring(1, m1));
-//                        int m2 = str2.toCharArray().length;
-//                        int s2 = Integer.parseInt(str2.substring(1, m2));
-////                        int st = Integer.parseInt(str.toCharArray());
-////                        System.out.println(j);
-////                        System.out.println(temp.get(i) + " icreat : " + s1);
-////                        System.out.println(temp.get(j) + " jcreate : " + s2);
-//
-//                        if (s1 > s2) {
-//                            Message m = temp.get(i);
-//                            temp.set(i, temp.get(j));
-//                            temp.set(j, m);
-//                        }
-//
-//                    }
-//                }
-////                System.out.println("temp " + temp);
-//                grupPesan.replace(key, temp);
-//            }
-//
-////                System.out.println("val2 : " + value);
-//            for (Map.Entry<List<String>, List<Message>> entry : grupPesan.entrySet()) {
-//                List<String> key = entry.getKey();
-//                List<Message> value = entry.getValue();
-//                List<String> msgCek = new ArrayList<>();
-//
-//                for (int i = 0; i < value.size(); i++) {
-//                    msgCek.add(value.get(i).toString());
-//                }
-//
-////                System.out.println(msgCek);
-//                List<String> hashSatu = input.MerkleTree.getNewMsgList(msgCek);
-//                List<String> hashDua = input.MerkleTree.hashRekursif(hashSatu);
-//
-//                String hashtoString = hashDua.toString(); //nilai hash yang dihashinh dari pesan yang ada digrup pesan
-//
-//                String hashMsgtoString = hashMsg.toString(); //nilai hash yang ada diproperti pesan
-//
-//                if (hashtoString != hashMsgtoString) {
-//                    trustValue = trustValue - 0.1;
-//                } else {
-//                    trustValue = trustValue + 0.1;
-//
-//                }
-//            }
+//                    for (int j = i + 1; j < temp.size() - j; j++) {
+
+                for (int i = 0; i < temp.size() - 1; i++) {
+                    for (int j = i + 1; j < temp.size(); j++) {
+                        String str1 = temp.get(i).toString();
+                        String str2 = temp.get(j).toString();
+                        int m1 = str1.toCharArray().length;
+                        int s1 = Integer.parseInt(str1.substring(1, m1));
+                        int m2 = str2.toCharArray().length;
+                        int s2 = Integer.parseInt(str2.substring(1, m2));
+//                        int st = Integer.parseInt(str.toCharArray());
+//                        System.out.println(j);
+//                        System.out.println(temp.get(i) + " icreat : " + s1);
+//                        System.out.println(temp.get(j) + " jcreate : " + s2);
+
+                        if (s1 > s2) {
+                            Message m = temp.get(i);
+                            temp.set(i, temp.get(j));
+                            temp.set(j, m);
+                        }
+
+                    }
+                }
+//                System.out.println("temp " + temp);
+                grupPesan.replace(key, temp);
+            }
+
+//                System.out.println("val2 : " + value);
+            for (Map.Entry<List<String>, List<Message>> entry : grupPesan.entrySet()) {
+                List<String> key = entry.getKey();
+                List<Message> value = entry.getValue();
+                List<String> msgCek = new ArrayList<>();
+
+                for (int i = 0; i < value.size(); i++) {
+                    msgCek.add(value.get(i).toString());
+                }
+
+//                System.out.println(msgCek);
+                List<String> hashSatu = input.MerkleTree.getNewMsgList(msgCek);
+                List<String> hashDua = input.MerkleTree.hashRekursif(hashSatu);
+
+                String hashtoString = hashDua.toString(); //nilai hash yang dihashinh dari pesan yang ada digrup pesan
+
+                String hashMsgtoString = hashMsg.toString(); //nilai hash yang ada diproperti pesan
+
+                if (hashtoString != hashMsgtoString) {
+                    trustVal = trustVal - 0.1;
+                } else {
+                    trustVal = trustVal + 0.1;
+
+                }
+
+            }
 //            //deteksi 1
         } catch (Exception e) {
         }

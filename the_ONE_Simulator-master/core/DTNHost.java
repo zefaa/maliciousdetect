@@ -34,7 +34,8 @@ public class DTNHost implements Comparable<DTNHost> {
     private List<MovementListener> movListeners;
     private List<NetworkInterface> net;
     private ModuleCommunicationBus comBus;
-        
+    private double trustValue;
+
     static {
         DTNSim.registerForReset(DTNHost.class.getCanonicalName());
         reset();
@@ -61,7 +62,7 @@ public class DTNHost implements Comparable<DTNHost> {
         this.address = getNextAddress();
         this.name = groupId + address;
         this.net = new ArrayList<NetworkInterface>();
-
+        this.trustValue = 0.5;
         for (NetworkInterface i : interf) {
             NetworkInterface ni = i.replicate();
             ni.setHost(this);
@@ -532,6 +533,10 @@ public class DTNHost implements Comparable<DTNHost> {
      */
     public int compareTo(DTNHost h) {
         return this.getAddress() - h.getAddress();
+    }
+
+    public double getTrustValue(DTNHost ho) {
+        return this.trustValue;
     }
 
 }
