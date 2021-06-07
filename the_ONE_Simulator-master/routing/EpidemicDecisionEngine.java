@@ -38,6 +38,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     ArrayList<Integer> valList;
     int trysize = 0;
     double trustVal;
+    List<DTNHost> maliciousList = new ArrayList<DTNHost>();
 
     public EpidemicDecisionEngine(Settings s) {
 //        if (s.contains(TOTAL_CONTACT_INTERVAL)) {
@@ -81,26 +82,29 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
 
         List<Message> psn = saveMsg.get(peer);
-
-        //deteksi 1
-        try {
-            if (thisHost.toString().startsWith("mal")) {
-                for (Message m : psn) {
-
-                    if (thisHost != m.getFrom() && thisHost != m.getTo()) {
-                        Random rng = new Random();
-                        int rand = 1 * rng.nextInt() + 0;
-                        switch (rand) {
-                            case 0:
-                                shouldSaveReceivedMessage(m, thisHost, peer);
-                            default:
-                                thisHost.deleteMessage(m.toString(), true);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-        }
+//        try {
+//            for (Message m : psn) {
+//                if (thisHost.toString().startsWith("mal")) { //jika nama grup node diawali dengan 3 string "mal"
+//                    //maka jalankan di bawah ini, pesan akan dibuang secara random sebanyak 50%
+//
+//                    Random rng = new Random();
+//                    int rand = 1 * rng.nextInt() + 0;
+//
+//                    switch (rand) {
+//                        case 0:
+//                            shouldSaveReceivedMessage(m, thisHost, peer);
+//                        default:
+//                            thisHost.deleteMessage(m.toString(), true);
+//                            
+//                    }
+//                    //jika nama grup node tidak diawal dengan 3 string mal maka  pesan akan disimpan dalam buffer node untuk diteruskan ke node berikutnya 
+//                } else {
+//                    shouldSaveReceivedMessage(m, thisHost, peer);
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//        }
 
         //panggil method verifikasi
         verifikasiPesan(psn);
@@ -109,19 +113,15 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 
         //deteksi 1
         try {
-            List<DTNHost> maliciousList = new ArrayList<DTNHost>();
+            
             for (Message msg : psn) {
                 if (trustVal < 0.1) {
-                    maliciousList.add(peer);
-                    shouldSendMessageToHost(msg, peer, thisHost);
-
+                    maliciousList.add(peer);                   
                 }
                 //System.out.println("mal " + maliciousList);
             }
         } catch (Exception e) {
         }
-
-        System.out.println("tr " + " " + peer + " " + trustVal);
     }
 
     @Override
@@ -150,6 +150,33 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         List<Message> psn = saveMsg.get(from);
         Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
 
+         try {
+
+            if (thisHost.toString().startsWith("mal")) { //jika nama grup node diawali dengan 3 string "mal"
+                //maka jalankan di bawah ini, pesan akan dibuang secara random sebanyak 50%
+
+                if (thisHost != m.getTo() && thisHost != m.getFrom()) {
+                    Random rng = new Random();
+                    int rand = 1 * rng.nextInt() + 0;
+
+                    switch (rand) {
+                        case 0:
+                            return m.getTo() != thisHost;
+                        default:
+                            drop.add(m);
+                            return false;
+
+                    }
+                }
+
+                //jika nama grup node tidak diawal dengan 3 string mal maka  pesan akan disimpan dalam buffer node untuk diteruskan ke node berikutnya 
+            } else {
+                return m.getTo() != thisHost;
+            }
+        } catch (Exception e) {
+        }
+        
+        
         try {
             psn.add(m);
 
@@ -184,21 +211,26 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
 //        if (thisHost.toString().startsWith("mal")) { //jika nama grup node diawali dengan 3 string "mal"
 //            //maka jalankan di bawah ini, pesan akan dibuang secara random sebanyak 50%
 //
-//            Random rng = new Random();
-//            int rand = 1 * rng.nextInt() + 0;
+//            if (thisHost != m.getTo() && thisHost != m.getFrom()) {
+//                Random rng = new Random();
+//                int rand = 1 * rng.nextInt() + 0;
 //
-//            switch (rand) {
-//                case 0:
-//                    return m.getTo() != thisHost;
-//                default:
-//                    drop.add(m);
-//                    return false;
+//                switch (rand) {
+//                    case 0:
+//                        return m.getTo() != thisHost;
+//                    default:
+//                        thisHost.deleteMessage(m.toString(), true);
+//                        return false;
 //
+//                }
 //            }
+//
 //            //jika nama grup node tidak diawal dengan 3 string mal maka  pesan akan disimpan dalam buffer node untuk diteruskan ke node berikutnya 
 //        } else {
-        return m.getTo() != thisHost;
+//            return m.getTo() != thisHost;
 //        }
+       
+        return m.getTo() != thisHost;
     }
 
     @Override
@@ -214,27 +246,21 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
         List<Message> psn = saveMsg.get(otherHost);
 
         try {
-//            if (thisHost.toString().startsWith("mal")) {
-//                for (Message message : psn) {
-//                    if (thisHost != message.getFrom() && thisHost != message.getTo()) {
-//                        thisHost.deleteMessage(message.toString(), true);
-//                    }
-//                }
-//            } else {
             ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
             int clMethodSize = clMethod.size();
-            if (clMethodSize < buf) {
-                return true;
+            for (DTNHost mal : maliciousList) {
+                if (otherHost.equals(mal)) {
+                    return false;
+                } else {
+                    if (clMethodSize < buf) {
+                        return true;
+                    }  
+                }
             }
+            
 
         } catch (Exception e) {
         }
-//        int valSize = valList.size();
-//        System.out.println("try"+trysize);
-//        if (valSize < buf) {
-//            
-//        }
-
         return true;
 
     }
@@ -242,7 +268,7 @@ public class EpidemicDecisionEngine implements RoutingDecisionEngineMalicious, N
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost
     ) {
-        return false;
+        return true;
     }
 
     @Override

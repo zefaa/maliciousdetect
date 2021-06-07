@@ -65,6 +65,7 @@ public class EpidemicDecisionRouter implements RoutingDecisionEngine{
 
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost) {
+        
         return !thisHost.getRouter().hasMessage(m.getId());
     }
 
