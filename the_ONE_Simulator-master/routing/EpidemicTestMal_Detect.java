@@ -38,7 +38,7 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     double trustVal;
     private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
     List<Message> pesan = null;
-    List<String> hashMsg = null;
+    List<String> hashMsg = new ArrayList<>();
     ArrayList<Integer> valList;
     int trysize = 0;
     List<DTNHost> maliciousList = new ArrayList<DTNHost>();
@@ -127,60 +127,55 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
         try {
             psn.add(m);
             for (Message message : psn) {
-                hashMsg = (List<String>) message.getProperty("hash");
+                hashMsg =  (List<String>) message.getProperty("hashSatu");
+
                 if (!sendMsgGrup.containsKey(hashMsg)) {
                     pesan = new ArrayList<Message>();
 
                 } else {
                     pesan = sendMsgGrup.get(hashMsg);
                 }
+
                 pesan.add(message);
                 sendMsgGrup.put(hashMsg, pesan);
+                
+                
             }
-            List<Message> pesanTemp = new ArrayList<>();
-            pesanTemp = sendMsgGrup.get(hashMsg);
 
-            Map<List<Message>, Integer> conMsg = new HashMap<>();
-
-            conMsg.put(pesanTemp, pesanTemp.size());
-            trysize = pesanTemp.size();
-
-            if (trysize == 8) {
-                thisHost.receiveMessage(m, from);
-            }
         } catch (Exception e) {
         }
-
+        
         return !thisHost.getRouter().hasMessage(m.getId());
     }
 
     @Override
     public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
 
-        int mSize = m.getSize();
-        int bOth = otherHost.getRouter().getFreeBufferSize();
-
-        int buf = bOth / mSize;
-        List<Message> shSend = saveMsgThis.get(thisHost);
-        List<Message> psn = saveMsg.get(otherHost);
-
-        try {
-            ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
-            int clMethodSize = clMethod.size();
-
-//            for (DTNHost malNode : maliciousList) {
-//                if (otherHost.equals(malNode)) {
-//                    return false;
-//                } else {
-            if (clMethodSize < buf) {
-                return true;
-            }
-//                }
+//        int mSize = m.getSize();
+//        int bOth = otherHost.getRouter().getFreeBufferSize();
+//        
+//        int buf = bOth / mSize;
+//        List<Message> shSend = saveMsgThis.get(thisHost);
+//        List<Message> psn = saveMsg.get(otherHost);
+//        
+//        try {
+//            ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
+//            int clMethodSize = clMethod.size();
+//
+////            for (DTNHost malNode : maliciousList) {
+////                if (otherHost.equals(malNode)) {
+////                    return false;
+////                } else {
+//            if (clMethodSize < buf) {
+//                return true;
 //            }
-
-        } catch (Exception e) {
-        }
+////                }
+////            }
+//
+//        } catch (Exception e) {
+//        }
         return true;
+
     }
 
     @Override
@@ -213,40 +208,38 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
      * @param sendMsg
      * @return
      */
-    public int shouldSendMessageBuffer(List<Message> sendMsg) {
-        //gruping pesan
-        Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
-        List<Message> pesanTemp = new ArrayList<>();
-        try {
-            for (Message message : sendMsg) {
-                hashMsg = (List<String>) message.getProperty("hash");
-                if (!sendMsgGrup.containsKey(hashMsg)) {
-                    pesan = new ArrayList<Message>();
-
-                } else {
-                    pesan = sendMsgGrup.get(hashMsg);
-                }
-                pesan.add(message);
-                sendMsgGrup.put(hashMsg, pesan);
-
-            }
-
-            //hitung total size dari pesan yang akan dikirim
-            pesanTemp = sendMsgGrup.get(hashMsg);
-
-            Map<List<Message>, Integer> conMsg = new HashMap<>();
-
-            conMsg.put(pesanTemp, pesanTemp.size());
-            trysize = pesanTemp.size();
-            //valList = new ArrayList<Integer>(conMsg.values());
-
-            //int valSize = valList.size();
-//            System.out.println("gr "+valSize + "psn temp "+pesanTemp.size());
-        } catch (Exception e) {
-        }
-        return pesanTemp.size();
-    }
-
+//    public int shouldSendMessageBuffer(List<Message> sendMsg) {
+//        //gruping pesan
+//        Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
+//        List<Message> pesanTemp = new ArrayList<>();
+//        try {
+//            for (Message message : sendMsg) {
+//                hashMsg = (List<String>) message.getProperty("hashEmpat");
+//                if (!sendMsgGrup.containsKey(hashMsg)) {
+//                    pesan = new ArrayList<Message>();
+//                    
+//                } else {
+//                    pesan = sendMsgGrup.get(hashMsg);
+//                }
+//                pesan.add(message);
+//                sendMsgGrup.put(hashMsg, pesan);
+//            }
+//
+//            //hitung total size dari pesan yang akan dikirim
+//            pesanTemp = sendMsgGrup.get(hashMsg);
+//            
+//            Map<List<Message>, Integer> conMsg = new HashMap<>();
+//            
+//            conMsg.put(pesanTemp, pesanTemp.size());
+//            trysize = pesanTemp.size();
+//
+//            //valList = new ArrayList<Integer>(conMsg.values());
+//            //int valSize = valList.size();
+////            System.out.println("gr "+valSize + "psn temp "+pesanTemp.size());
+//        } catch (Exception e) {
+//        }
+//        return pesanTemp.size();
+//    }
     //method verifikasi
     public void verifikasiPesan(List<Message> psn) {
         //gruping pesan

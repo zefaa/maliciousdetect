@@ -57,4 +57,41 @@ public class MerkleTree {
         return hashDua;
     }
 
+    public static List<String> getNewMsgList_3(List<String> tempMsgList_3) {
+        List<String> hashTiga = new ArrayList<String>();
+        int index = 0;
+        while (index < tempMsgList_3.size()) {
+            String left = tempMsgList_3.get(index);
+            index++;
+
+            String right = "";
+            if (index != tempMsgList_3.size()) {
+                right = tempMsgList_3.get(index);
+            }
+            String sha1HexValue = org.apache.commons.codec.digest.DigestUtils.sha1Hex(left + right);
+            hashTiga.add(sha1HexValue);
+            index++;
+        }
+        return hashTiga;
+    }
+    
+     public static List<String> getNewMsgList_4(List<String> tempMsgList_4) {
+        List<String> hashEmpat = new ArrayList<String>();
+        int index = 0;
+        while (index < tempMsgList_4.size()) {
+            String left = tempMsgList_4.get(index);
+            index++;
+
+            String right = "";
+            if (index != tempMsgList_4.size()) {
+                right = tempMsgList_4.get(index);
+            }
+            String sha1HexValue = org.apache.commons.codec.digest.DigestUtils.sha1Hex(left + right);
+            hashEmpat.add(sha1HexValue);
+            index++;
+        }
+        return hashEmpat;
+    }
+     
+     
 }

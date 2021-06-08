@@ -8,7 +8,9 @@ import core.DTNHost;
 import core.Message;
 import core.World;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -55,7 +57,9 @@ public class MessageCreateEventMal extends MessageEvent {
         DTNHost from = world.getNodeByAddress(this.fromAddr);
         List<Message> messages = new ArrayList<>();
         List<String> mtostring = new ArrayList<>();
-
+        Map<List<String>, List<Message>> mapHash= new HashMap<>();
+        Map<List<String>, List<Message>> mapHash2= new HashMap<>();
+        
         for (int i = 0; i < jumPesan; i++) {
             String name = this.prefix + (this.nomor + i);
 
@@ -66,16 +70,23 @@ public class MessageCreateEventMal extends MessageEvent {
             mtostring.add(m.toString());
 
         }
+        
+        
         List<String> hashSatu = MerkleTree.getNewMsgList(mtostring);
-        List<String> hashDua = MerkleTree.hashRekursif(hashSatu);
-
+        List<String> hashDua = MerkleTree.getNewMsgList_2(hashSatu);
+        List<String> hashTiga = MerkleTree.getNewMsgList_3(hashDua);
+        List<String> hashEmpat = MerkleTree.getNewMsgList_4(hashTiga);
+        
+        mapHash.put(hashEmpat, messages);
+        mapHash2.put(hashDua, messages);
+        
         for (Message m : messages) {
-            m.addProperty("hash", hashDua);
+            m.addProperty("hashSatu", hashEmpat);
+           
             from.createNewMessage(m);
         }
-     
-//        System.out.println("CREATED");
-//        System.out.println("from : " + from + " " + " to: " + to + messages + " " + "size " + sizeMin + " " + sizeMax);
+        
+
 
     }
 
