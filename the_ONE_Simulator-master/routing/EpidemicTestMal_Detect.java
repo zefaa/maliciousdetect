@@ -37,7 +37,10 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     private LinkedList drop = new LinkedList();
     double trustVal;
     private Map<DTNHost, List<Message>> saveMsgThis = new HashMap<>();
+
     List<Message> pesan = null;
+    Map<String, Map<List<String>, List<Message>>> hashMesg = new HashMap<>();
+
     List<String> hashMsg = new ArrayList<>();
     ArrayList<Integer> valList;
     int trysize = 0;
@@ -107,7 +110,7 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
         List<Message> psn = saveMsg.get(from);
-        Map<List<String>, List<Message>> sendMsgGrup = new HashMap<>();
+        Map<Map<String, Map<List<String>, List<Message>>>, List<Message>> sendMsgGrup = new HashMap<>();
 
         if (thisHost.toString().startsWith("mal")) {
             Random rng = new Random();
@@ -125,26 +128,34 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
         }
 
         try {
+            /**
+             * gruping pesan yang masuk berdasarkan hash yang ada di properti
+             * pesan.
+             */
             psn.add(m);
             for (Message message : psn) {
-                hashMsg =  (List<String>) message.getProperty("hashSatu");
+                hashMesg = (Map<String, Map<List<String>, List<Message>>>) message.getProperty("hashSatu");
 
-                if (!sendMsgGrup.containsKey(hashMsg)) {
+                if (!sendMsgGrup.containsKey(hashMesg)) {
                     pesan = new ArrayList<Message>();
 
                 } else {
-                    pesan = sendMsgGrup.get(hashMsg);
+                    pesan = sendMsgGrup.get(hashMesg);
                 }
 
                 pesan.add(message);
-                sendMsgGrup.put(hashMsg, pesan);
-                
-                
+
+                sendMsgGrup.put(hashMesg, pesan);
+
+                //System.out.println("h : "+sendMsgGrup); 
+                for (Map<List<String>, List<Message>> value : hashMesg.values()) {
+                    System.out.println("val");
+                }
             }
 
         } catch (Exception e) {
         }
-        
+
         return !thisHost.getRouter().hasMessage(m.getId());
     }
 

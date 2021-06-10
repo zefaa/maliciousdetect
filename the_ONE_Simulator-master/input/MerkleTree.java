@@ -14,6 +14,19 @@ import java.util.List;
  */
 public class MerkleTree {
 
+    public static String getNewMsgList(String msgToString) {
+     String hashSatu; 
+     
+     hashSatu = org.apache.commons.codec.digest.DigestUtils.sha1Hex(msgToString);
+            
+        
+        return hashSatu;   
+    }
+
+    
+    
+    
+
     List<String> msgList;
     String root;
 
@@ -22,22 +35,23 @@ public class MerkleTree {
         root = "";
     }
 
-    public static List<String> getNewMsgList(List<String> tempMsgList) {
-        List<String> hashSatu = new ArrayList<String>();
+//    public static List<String> getNewMsgList(List<String> tempMsgList) {
+//        List<String> hashSatu = new ArrayList<String>();
+//
+//        
+//        for (String temp : tempMsgList) {
+//            hashSatu.add(org.apache.commons.codec.digest.DigestUtils.sha1Hex(temp));
+//        }
+//        return hashSatu;
+//    }
 
-        for (String temp : tempMsgList) {
-            hashSatu.add(org.apache.commons.codec.digest.DigestUtils.sha1Hex(temp));
-        }
-        return hashSatu;
-    }
-
-    public static List<String> hashRekursif(List<String> masukan) {
-        List<String> a = masukan;
-        do {
-            a = getNewMsgList_2(a);
-        } while (a.size() != 1);
-        return a;
-    }
+//    public static List<String> hashRekursif(List<String> masukan) {
+//        List<String> a = masukan;
+//        do {
+//            a = getNewMsgList_2(a);
+//        } while (a.size() != 1);
+//        return a;
+//    }
 
     public static List<String> getNewMsgList_2(List<String> tempMsgList_2) {
         List<String> hashDua = new ArrayList<String>();
