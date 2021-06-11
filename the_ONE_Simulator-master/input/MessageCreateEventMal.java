@@ -58,7 +58,7 @@ public class MessageCreateEventMal extends MessageEvent {
         DTNHost from = world.getNodeByAddress(this.fromAddr);
         List<Message> messages = new ArrayList<>();
         List<String> mtostring = new ArrayList<>();
-        String msgToString = null;
+        List<Message> tempMsg = new ArrayList<>();
         Map<List<String>, List<Message>> mapHash = new HashMap<>();
         Map<List<String>, List<Message>> mapHash2 = new HashMap<>();
 
@@ -73,31 +73,78 @@ public class MessageCreateEventMal extends MessageEvent {
 
         }
 
-        String hashSatu;
-
-        String hashDua;
-//        List<String> hashTiga = MerkleTree.getNewMsgList_3(hashDua);
-//        List<String> hashEmpat = MerkleTree.getNewMsgList_4(hashTiga);
+        List<String> msgSize = new ArrayList<>();
 
         for (Message m : messages) {
-            hashSatu = MerkleTree.getNewMsgList(m.toString());
+            msgSize.add(m.toString());
+            String hashSatu = MerkleTree.getNewMsgList(m.toString());
             Tuple<String, String> tuple1 = new Tuple(m.toString(), hashSatu);
+            m.addProperty("hashSatu", tuple1);
             System.out.println("tup 1 : " + tuple1);
+        }
 
-            for (int i = 0; i < jumPesan; i++) {
-                hashDua = MerkleTree.getNewMsgList(hashSatu);
-                Tuple<String, String> tuple2 = new Tuple(m.toString(), hashDua);
-                System.out.println("tup 2 " + tuple2);
+        for (int i = 0; i < messages.size(); i += 2) {
+            Tuple<String, String> tupleKiri = (Tuple<String, String>) messages.get(i).getProperty("hashSatu");
+            Tuple<String, String> tupleKanan = (Tuple<String, String>) messages.get(i + 1).getProperty("hashSatu");
+            String gabungHash = tupleKiri.getValue() + tupleKanan.getValue();
+            String hashDua = MerkleTree.getNewMsgList(gabungHash);
+            List<String> key = new ArrayList<>();
+            key.add(tupleKiri.getKey());
+            key.add(tupleKanan.getKey());
+
+            Tuple<List<String>, String> tuple2 = new Tuple(key, hashDua);
+            messages.get(i).addProperty("hashDua", tuple2);
+            messages.get(i + 1).addProperty("hashDua", tuple2);
+            System.out.println("tup 2 : " + tuple2);
+        }
+
+        for (int i = 0; i < messages.size(); i += 4) {
+            Tuple<List<String>, String> tupleKiri = (Tuple<List<String>, String>) messages.get(i).getProperty("hashDua");
+            Tuple<List<String>, String> tupleKanan = (Tuple<List<String>, String>) messages.get(i + 2).getProperty("hashDua");
+            String gabungHash = tupleKiri.getValue() + tupleKanan.getValue();
+            String hashTiga = MerkleTree.getNewMsgList(gabungHash);
+            List<String> key = new ArrayList<>();
+            for (String keyKiri : tupleKiri.getKey()) {
+                key.add(keyKiri);
+            }
+            for (String keyKanan : tupleKanan.getKey()) {
+                key.add(keyKanan);
             }
 
+            Tuple<List<String>, String> tuple3 = new Tuple(key, hashTiga);
+            messages.get(i).addProperty("hashTiga", tuple3);
+            messages.get(i + 1).addProperty("hashTiga", tuple3);
+            messages.get(i + 2).addProperty("hashTiga", tuple3);
+            messages.get(i + 3).addProperty("hashTiga", tuple3);
+            System.out.println("tup 3 : " + tuple3);
         }
 
-        for (Message m : messages) {
-            m.addProperty("hashSatu", mapHash);
+        for (int i = 0; i < messages.size(); i += 8) {
+            Tuple<List<String>, String> tupleKiri = (Tuple<List<String>, String>) messages.get(i).getProperty("hashTiga");
+            Tuple<List<String>, String> tupleKanan = (Tuple<List<String>, String>) messages.get(i + 4).getProperty("hashTiga");
+            String gabungHash = tupleKiri.getValue() + tupleKanan.getValue();
+            String hashEmpat = MerkleTree.getNewMsgList(gabungHash);
+            List<String> key = new ArrayList<>();
+            for (String keyKiri : tupleKiri.getKey()) {
+                key.add(keyKiri);
+            }
+            for (String keyKanan : tupleKanan.getKey()) {
+                key.add(keyKanan);
+            }
 
-            from.createNewMessage(m);
+            Tuple<List<String>, String> tuple4 = new Tuple(key, hashEmpat);
+            messages.get(i).addProperty("hashEmpat", tuple4);
+            messages.get(i + 1).addProperty("hashEmpat", tuple4);
+            messages.get(i + 2).addProperty("hashEmpat", tuple4);
+            messages.get(i + 3).addProperty("hashEmpat", tuple4);
+            messages.get(i + 4).addProperty("hashEmpat", tuple4);
+            System.out.println("tup 4 : " + tuple4);
+//            for (Message m : messages) {
+//                m.addProperty("hashSatu", mapHash);
+//
+//                from.createNewMessage(m);
+//            }
         }
-
     }
 
     @Override

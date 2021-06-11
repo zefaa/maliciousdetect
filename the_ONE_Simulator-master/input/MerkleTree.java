@@ -23,10 +23,6 @@ public class MerkleTree {
         return hashSatu;   
     }
 
-    
-    
-    
-
     List<String> msgList;
     String root;
 
