@@ -396,8 +396,10 @@ public abstract class ActiveRouter extends MessageRouter {
 	 */
 	protected Connection tryMessagesToConnections(List<Message> messages,
 			List<Connection> connections) {
+            
 		for (int i=0, n=connections.size(); i<n; i++) {
 			Connection con = connections.get(i);
+                        System.out.println("s "+con);
 			Message started = tryAllMessages(con, messages); 
 			if (started != null) { 
 				return con;
@@ -427,6 +429,7 @@ public abstract class ActiveRouter extends MessageRouter {
 			new ArrayList<Message>(this.getMessageCollection());
 		this.sortByQueueMode(messages);
 
+                
 		return tryMessagesToConnections(messages, connections);
 	}
 		

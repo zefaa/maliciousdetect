@@ -71,6 +71,7 @@ public class MessageCreateEventMal extends MessageEvent {
             messages.add(m);
             mtostring.add(m.toString());
 
+            from.createNewMessage(m);
         }
 
         List<String> msgSize = new ArrayList<>();
@@ -80,7 +81,7 @@ public class MessageCreateEventMal extends MessageEvent {
             String hashSatu = MerkleTree.getNewMsgList(m.toString());
             Tuple<String, String> tuple1 = new Tuple(m.toString(), hashSatu);
             m.addProperty("hashSatu", tuple1);
-            System.out.println("tup 1 : " + tuple1);
+            //System.out.println("tup 1 : " + tuple1);
         }
 
         for (int i = 0; i < messages.size(); i += 2) {
@@ -95,7 +96,7 @@ public class MessageCreateEventMal extends MessageEvent {
             Tuple<List<String>, String> tuple2 = new Tuple(key, hashDua);
             messages.get(i).addProperty("hashDua", tuple2);
             messages.get(i + 1).addProperty("hashDua", tuple2);
-            System.out.println("tup 2 : " + tuple2);
+           // System.out.println("tup 2 : " + tuple2);
         }
 
         for (int i = 0; i < messages.size(); i += 4) {
@@ -116,7 +117,7 @@ public class MessageCreateEventMal extends MessageEvent {
             messages.get(i + 1).addProperty("hashTiga", tuple3);
             messages.get(i + 2).addProperty("hashTiga", tuple3);
             messages.get(i + 3).addProperty("hashTiga", tuple3);
-            System.out.println("tup 3 : " + tuple3);
+            //System.out.println("tup 3 : " + tuple3);
         }
 
         for (int i = 0; i < messages.size(); i += 8) {
@@ -139,12 +140,12 @@ public class MessageCreateEventMal extends MessageEvent {
             messages.get(i + 3).addProperty("hashEmpat", tuple4);
             messages.get(i + 4).addProperty("hashEmpat", tuple4);
             System.out.println("tup 4 : " + tuple4);
+
 //            for (Message m : messages) {
 //                m.addProperty("hashSatu", mapHash);
 //
-//                from.createNewMessage(m);
-//            }
         }
+
     }
 
     @Override

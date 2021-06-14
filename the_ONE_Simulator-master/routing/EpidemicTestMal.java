@@ -54,12 +54,20 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious, NodeMali
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
         List<Message> pesan = new ArrayList<Message>();
         saveMsg.put(peer, pesan);
+
     }
 
     @Override
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
-        List<Message> psn = saveMsg.get(peer);
-
+//        try {
+//            List<Message> psn = saveMsg.get(peer);
+//            if (psn != null) {
+//                if (thisHost.toString().startsWith("mal")) {
+//                    thisHost.deleteMessage(psn.toString(), true);
+//                }
+//            }
+//        } catch (Exception e) {
+//        }
     }
 
     @Override
@@ -80,18 +88,11 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious, NodeMali
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
         List<Message> psn = saveMsg.get(from);
-
+        psn.add(m);
+        
+        System.out.println(psn);
         if (thisHost.toString().startsWith("mal")) {
-            Random rng = new Random();
-            int rand = 1 * rng.nextInt() + 0;
-
-            switch (rand) {
-                case 0:
-                    return m.getTo() != thisHost;
-                default:
-                    drop.add(m);
-                    return false;
-            }
+            thisHost.deleteMessage(psn.toString(), true);
 
         }
         return !thisHost.getRouter().hasMessage(m.getId());
@@ -105,7 +106,7 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious, NodeMali
 
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-        return false;
+        return true;
     }
 
     @Override
