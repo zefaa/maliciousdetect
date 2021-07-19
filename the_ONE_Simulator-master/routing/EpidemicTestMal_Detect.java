@@ -76,14 +76,18 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
         
         List<Message> psn = saveMsg.get(peer);
-      
-//        try {
-//            if (thisHost.toString().startsWith("mal")) {
-//                thisHost.deleteMessage(psn.toString(), true);
-//            } 
-//        } catch (Exception e) {
-//        }
-       
+        int as = 1;
+        for (Message msg : psn) {
+            if (msg != null) {
+                if (thisHost.toString().startsWith("mal")) {
+                    if (thisHost != msg.getFrom() && thisHost != msg.getTo()) {
+                        thisHost.deleteMessage(msg.toString(), true);
+                    }
+                }
+
+            }
+
+        }
     }
     
     @Override
@@ -212,41 +216,41 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     @Override
     public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
 
-//        int mSize = m.getSize();
-//        int bOth = otherHost.getRouter().getFreeBufferSize();
-//        
-//        int buf = bOth / mSize;
-//        List<Message> shSend = saveMsgThis.get(thisHost);
-//        List<Message> psn = saveMsg.get(otherHost);
-//        
-//        try {
-//            ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
-//            int clMethodSize = clMethod.size();
-//
-////            for (DTNHost malNode : maliciousList) {
-////                if (otherHost.equals(malNode)) {
-////                    return false;
-////                } else {
-//            if (clMethodSize < buf) {
-//                return true;
+        int mSize = m.getSize();
+        int bOth = otherHost.getRouter().getFreeBufferSize();
+        
+        int buf = bOth / mSize;
+        List<Message> shSend = saveMsgThis.get(thisHost);
+        List<Message> psn = saveMsg.get(otherHost);
+        
+        try {
+            ArrayList<Integer> clMethod = new ArrayList<Integer>(this.shouldSendMessageBuffer(shSend));
+            int clMethodSize = clMethod.size();
+
+//            for (DTNHost malNode : maliciousList) {
+//                if (otherHost.equals(malNode)) {
+//                    return false;
+//                } else {
+            if (clMethodSize < buf) {
+                return true;
+            }
+//                }
 //            }
-////                }
-////            }
-//
-//        } catch (Exception e) {
-//        }
+
+        } catch (Exception e) {
+        }
         return true;
         
     }
     
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-        return true;
+        return false;
     }
     
     @Override
     public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
-        return true;
+        return false;
     }
     
     @Override

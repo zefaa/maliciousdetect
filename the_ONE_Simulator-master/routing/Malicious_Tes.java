@@ -9,38 +9,28 @@ import core.Connection;
 import core.DTNHost;
 import core.Message;
 import core.Settings;
-import core.SimClock;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  *
- * @author Afra Rian
+ * @author M S I
  */
-public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
+public class Malicious_Tes implements RoutingDecisionEngineMalicious {
 
-    /**
-     * For Report purpose, maybe needed some variable
-     */
     protected LinkedList<Double> resourcesList;
+    private int interval;
     public static final String TOTAL_CONTACT_INTERVAL = "perTotalContact";
     public static final int DEFAULT_CONTACT_INTERVAL = 300;
     private Double lastRecord = Double.MIN_VALUE;
-    private int interval;
 
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>();
-    private Map<DTNHost, Message> dropMsg = new HashMap<>();
-            
-    private List<Message> drop = new ArrayList<>();
-    private List<Message> remove = new ArrayList<>();
-//    private LinkedList drop = new LinkedList();
+    private List<Message> rcvMsg;
 
-    public EpidemicTestMal(Settings s) {
+    public Malicious_Tes(Settings s) {
         if (s.contains(TOTAL_CONTACT_INTERVAL)) {
             interval = s.getInt(TOTAL_CONTACT_INTERVAL);
         } else {
@@ -48,7 +38,7 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
         }
     }
 
-    public EpidemicTestMal(EpidemicTestMal proto) {
+    public Malicious_Tes(Malicious_Tes proto) {
         resourcesList = new LinkedList<>();
         interval = proto.interval;
         lastRecord = proto.lastRecord;
@@ -56,32 +46,27 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
     @Override
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
-
         List<Message> pesan = new ArrayList<Message>();
-        
-        
-        
-        saveMsg.put(peer, pesan);
 
+        saveMsg.put(peer, pesan);
     }
 
     @Override
-    public void connectionDown(DTNHost thisHost, DTNHost otherHost) {
-     List<Message> psn = saveMsg.get(otherHost);
-     
-        if (thisHost.toString().startsWith("mal")) {
-        for (Message msg : psn) {
-            if (msg != null) {
-                
-                    if (thisHost != msg.getFrom() && thisHost != msg.getTo()) {
-                        thisHost.deleteMessage(msg.toString(), true);
+    public void connectionDown(DTNHost thisHost, DTNHost peer) {
+        List<Message> rcvMsg = saveMsg.get(peer);
+
+            for (Message readRcvMsg : rcvMsg) {
+
+                if (thisHost.toString().startsWith("mal")) {
+
+                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
+
+                        thisHost.deleteMessage(readRcvMsg.getId(), true);
+
                     }
                 }
-
-            }
-
         }
-    
+
     }
 
     @Override
@@ -91,46 +76,37 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
     @Override
     public boolean newMessage(Message m) {
-
         return true;
     }
 
     @Override
     public boolean isFinalDest(Message m, DTNHost aHost) {
-
         return m.getTo() == aHost;
     }
 
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
 
-        List<Message> psn = saveMsg.get(from);
-        psn.add(m);
+        rcvMsg = saveMsg.get(from);
+        rcvMsg.add(m);
 
         return true;
     }
 
     @Override
     public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
-
         return true;
     }
 
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-        return false;
+
+        return true;
     }
 
     @Override
     public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
-
         return false;
-    }
-
-    @Override
-    public RoutingDecisionEngineMalicious replicate() {
-
-        return new EpidemicTestMal(this);
     }
 
     @Override
@@ -138,4 +114,11 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
     }
 
+    @Override
+    public RoutingDecisionEngineMalicious replicate() {
+        return new Malicious_Tes(this);
+    }
+
+    
+    
 }

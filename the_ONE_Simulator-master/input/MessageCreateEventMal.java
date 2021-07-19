@@ -139,7 +139,7 @@ public class MessageCreateEventMal extends MessageEvent {
             messages.get(i + 2).addProperty("hashEmpat", tuple4);
             messages.get(i + 3).addProperty("hashEmpat", tuple4);
             messages.get(i + 4).addProperty("hashEmpat", tuple4);
-            System.out.println("tup 4 : " + tuple4);
+            //System.out.println("tup 4 : " + tuple4);
 
 //            for (Message m : messages) {
 //                m.addProperty("hashSatu", mapHash);
