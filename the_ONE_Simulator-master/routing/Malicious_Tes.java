@@ -49,23 +49,23 @@ public class Malicious_Tes implements RoutingDecisionEngineMalicious {
         List<Message> pesan = new ArrayList<Message>();
 
         saveMsg.put(peer, pesan);
+        
     }
 
     @Override
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
-        List<Message> rcvMsg = saveMsg.get(peer);
-
-            for (Message readRcvMsg : rcvMsg) {
-
-                if (thisHost.toString().startsWith("mal")) {
-
-                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
-
-                        thisHost.deleteMessage(readRcvMsg.getId(), true);
-
-                    }
-                }
-        }
+//        List<Message> rcvMsg = saveMsg.get(peer);
+//
+//            for (Message readRcvMsg : rcvMsg) {
+//
+//                if (thisHost.toString().startsWith("mal")) {
+//
+//                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
+//                        
+//
+//                    }
+//                }
+//        }
 
     }
 
@@ -89,7 +89,7 @@ public class Malicious_Tes implements RoutingDecisionEngineMalicious {
 
         rcvMsg = saveMsg.get(from);
         rcvMsg.add(m);
-
+           
         return true;
     }
 
