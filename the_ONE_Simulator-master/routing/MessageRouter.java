@@ -169,20 +169,13 @@ public abstract class MessageRouter {
      * @param host The host this router is in
      * @param mListeners The message listeners
      */
-    public void init(DTNHost host, List<MessageListener> mListeners) {
+    public void initialize(DTNHost host, List<MessageListener> mListeners) {
         this.incomingMessages = new HashMap<String, Message>();
         this.messages = new HashMap<String, Message>();
         this.deliveredMessages = new HashMap<String, Message>();
         this.mListeners = mListeners;
         this.host = host;
-//        Random rnd = new Random();
-//        for (int i = 0; i < 5; i++) {
-//            if (i > 0 && nodeList.contains(nodeList.get(i - 1))) {
-//                nodeList.add(rnd.nextInt(nodeSelfish));
-//            } else {
-//                return;
-//            }
-//        }
+    
         System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
     }
 

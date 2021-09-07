@@ -132,7 +132,7 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
         conStates = new HashMap<Connection, Integer>(4);
     }
 
-//@Override
+    @Override
     public MessageRouter replicate() {
         return new DecisionEngineRouterMalicious(this);
     }
@@ -259,7 +259,7 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
              */
             Collection<Message> msgs = getMessageCollection();
             for (Message m : msgs) {
-                if (decider.shouldSendMessageToHost(m, otherNode, this.getHost())) {
+                if (decider.shouldSendMessageToHost(m, otherNode, myHost)) {
                     outgoingMessages.add(new Tuple<Message, Connection>(m, con));
                 }
             }
@@ -405,7 +405,9 @@ public class DecisionEngineRouterMalicious extends ActiveRouter {
         if (decider.shouldDeleteSentMessage(transferred, con.getOtherNode(getHost()))) {
 // if(transferred.getId().equals("M14"))
 // System.out.println("Host: " + getHost() + " deleting M14 after transfer");
-            this.deleteMessage(transferred.getId(), false);
+            if (transferred != null) {
+                this.deleteMessage(transferred.getId(), false);
+            }
 
 // for(Iterator<Tuple<Message, Connection>> i = outgoingMessages.iterator();
 // i.hasNext();)

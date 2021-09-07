@@ -24,21 +24,15 @@ import java.util.Random;
  */
 public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
-    /**
-     * For Report purpose, maybe needed some variable
-     */
     protected LinkedList<Double> resourcesList;
+    private int interval;
     public static final String TOTAL_CONTACT_INTERVAL = "perTotalContact";
     public static final int DEFAULT_CONTACT_INTERVAL = 300;
     private Double lastRecord = Double.MIN_VALUE;
-    private int interval;
 
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>();
-    private Map<DTNHost, Message> dropMsg = new HashMap<>();
-            
-    private List<Message> drop = new ArrayList<>();
-    private List<Message> remove = new ArrayList<>();
-//    private LinkedList drop = new LinkedList();
+    private List<Message> rcvMsg;
+    
 
     public EpidemicTestMal(Settings s) {
         if (s.contains(TOTAL_CONTACT_INTERVAL)) {
@@ -56,32 +50,31 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
     @Override
     public void connectionUp(DTNHost thisHost, DTNHost peer) {
-
         List<Message> pesan = new ArrayList<Message>();
-        
-        
-        
+
         saveMsg.put(peer, pesan);
 
     }
 
     @Override
-    public void connectionDown(DTNHost thisHost, DTNHost otherHost) {
-     List<Message> psn = saveMsg.get(otherHost);
-     
-        if (thisHost.toString().startsWith("mal")) {
-        for (Message msg : psn) {
-            if (msg != null) {
-                
-                    if (thisHost != msg.getFrom() && thisHost != msg.getTo()) {
-                        thisHost.deleteMessage(msg.toString(), true);
-                    }
-                }
+    public void connectionDown(DTNHost thisHost, DTNHost peer) {
+        List<Message> rcvMsg = saveMsg.get(peer);
 
-            }
-
-        }
-    
+//        try {
+//            for (Message readRcvMsg : rcvMsg) {
+//                if (thisHost.toString().startsWith("mal")) {
+//                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
+//                        Random rng = new Random();
+//                        int rand = rng.nextInt(2);
+//
+//                        if (rand == 0) {
+//                            thisHost.deleteMessage(readRcvMsg.toString(), true);
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//        }
     }
 
     @Override
@@ -91,51 +84,50 @@ public class EpidemicTestMal implements RoutingDecisionEngineMalicious {
 
     @Override
     public boolean newMessage(Message m) {
-
         return true;
     }
 
     @Override
     public boolean isFinalDest(Message m, DTNHost aHost) {
-
         return m.getTo() == aHost;
     }
 
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
 
-        List<Message> psn = saveMsg.get(from);
-        psn.add(m);
-
+        rcvMsg = saveMsg.get(from);
+        rcvMsg.add(m);
+        
+        
         return true;
     }
 
     @Override
     public boolean shouldSendMessageToHost(Message m, DTNHost otherHost, DTNHost thisHost) {
-
         return true;
     }
 
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-        return false;
+
+        return true;
     }
 
     @Override
     public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
-
         return false;
-    }
-
-    @Override
-    public RoutingDecisionEngineMalicious replicate() {
-
-        return new EpidemicTestMal(this);
     }
 
     @Override
     public void update(DTNHost thisHost) {
 
     }
+
+    @Override
+    public RoutingDecisionEngineMalicious replicate() {
+        return new EpidemicTestMal(this);
+    }
+
+    
 
 }

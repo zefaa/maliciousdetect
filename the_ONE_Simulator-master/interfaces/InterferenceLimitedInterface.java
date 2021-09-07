@@ -7,7 +7,6 @@ package interfaces;
 import java.util.Collection;
 
 import core.Connection;
-import core.DTNHost;
 import core.NetworkInterface;
 import core.Settings;
 import core.VBRConnection;
@@ -19,8 +18,8 @@ import core.VBRConnection;
  * transmissions. The configured transmit speed is the maximum obtainable speed.
  */
 public class InterferenceLimitedInterface extends NetworkInterface {
-	protected int currentTransmitSpeed;
-	protected int numberOfTransmissions;
+	private int currentTransmitSpeed;
+	private int numberOfTransmissions;
 
 	public InterferenceLimitedInterface(Settings s) {
 		super(s);
@@ -49,7 +48,6 @@ public class InterferenceLimitedInterface extends NetworkInterface {
 	 * Returns the transmit speed of this network layer
 	 * @return the transmit speed
 	 */
-	@Override
 	public int getTransmitSpeed() {
 		return this.currentTransmitSpeed;
 	}
@@ -61,7 +59,7 @@ public class InterferenceLimitedInterface extends NetworkInterface {
 	 */
 	public void connect(NetworkInterface anotherInterface) {
 		if (isScanning() 
-				&& anotherInterface.getHost().isActive()
+				&& anotherInterface.acceptingConnections()
 				&& isWithinRange(anotherInterface)
 				&& !isConnected(anotherInterface) 
 				&& (this != anotherInterface)) {
@@ -87,19 +85,23 @@ public class InterferenceLimitedInterface extends NetworkInterface {
 			// all connections should be up at this stage
 			assert con.isUp() : "Connection " + con + " was down!";
 
-			if (!isWithinRange(anotherInterface)) {
-				disconnect(con,anotherInterface);
-				connections.remove(i);
+			if (!isWithinRange(anotherInterface) || !this.isActive()) {
+				//disconnect(con,anotherInterface);
+				con.disconnect(this);
+				//connections.remove(i);
 			} else {
 				i++;
 			}
 		}
+		
+		if(isActive())
+		{
 		// Then find new possible connections
 		Collection<NetworkInterface> interfaces = 
 			optimizer.getNearInterfaces(this);
 		for (NetworkInterface i : interfaces) 
 			connect(i);
-
+		}
 		// Find the current number of transmissions
 		// (to calculate the current transmission speed
 		numberOfTransmissions = 0;
@@ -120,14 +122,11 @@ public class InterferenceLimitedInterface extends NetworkInterface {
 
 		// Based on the equation of Gupta and Kumar - and the transmission speed
 		// is divided equally to all the ongoing transmissions 
-		currentTransmitSpeed = (int)Math.floor((double)transmitSpeed / 
-				(Math.sqrt((1.0*numberOfActive) *
-						Math.log(1.0*numberOfActive))) /
-							ntrans );
-		
-		for (Connection con : getConnections()) {
-			con.update();
-		}
+		currentTransmitSpeed = 
+			(int)Math.floor((double)transmitSpeed / 
+					(Math.sqrt((1.0*numberOfActive) *
+							Math.log(1.0*numberOfActive))) /
+							ntrans );	    
 	}
 
 	/** 

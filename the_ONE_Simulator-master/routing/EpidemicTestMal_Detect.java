@@ -74,20 +74,39 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     
     @Override
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
-        
-        List<Message> psn = saveMsg.get(peer);
-        int as = 1;
-        for (Message msg : psn) {
-            if (msg != null) {
+//        
+//        List<Message> psn = saveMsg.get(peer);
+//        int as = 1;
+//        for (Message msg : psn) {
+//            if (msg != null) {
+//                if (thisHost.toString().startsWith("mal")) {
+//                    if (thisHost != msg.getFrom() && thisHost != msg.getTo()) {
+//                        thisHost.deleteMessage(msg.toString(), true);
+//                    }
+//                }
+//
+//            }
+//
+//        }
+
+ List<Message> rcvMsg = saveMsg.get(peer);
+
+        try {
+            for (Message readRcvMsg : rcvMsg) {
                 if (thisHost.toString().startsWith("mal")) {
-                    if (thisHost != msg.getFrom() && thisHost != msg.getTo()) {
-                        thisHost.deleteMessage(msg.toString(), true);
+                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
+                        Random rng = new Random();
+//                        int rand = rng.nextInt(2);
+//
+//                        if (rand == 0) {
+                            thisHost.deleteMessage(readRcvMsg.toString(), true);
+//                        }
                     }
                 }
-
             }
-
+        } catch (Exception e) {
         }
+
     }
     
     @Override
@@ -245,7 +264,7 @@ public class EpidemicTestMal_Detect implements RoutingDecisionEngineMalicious, N
     
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-        return false;
+        return true;
     }
     
     @Override

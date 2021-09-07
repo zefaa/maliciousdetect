@@ -10,9 +10,7 @@ import core.DTNHost;
 import core.Message;
 import core.Settings;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,7 @@ import java.util.Random;
  *
  * @author M S I
  */
-public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
+public class Malicious_Tes_Detection implements RoutingDecisionEngineMalicious {
 
     protected LinkedList<Double> resourcesList;
     private int interval;
@@ -32,8 +30,10 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
 
     private Map<DTNHost, List<Message>> saveMsg = new HashMap<>();
     private List<Message> rcvMsg;
+    List<String> hashMsg = null;
+    List<Message> pesan = null;
 
-    public Malicious_Tes2(Settings s) {
+    public Malicious_Tes_Detection(Settings s) {
         if (s.contains(TOTAL_CONTACT_INTERVAL)) {
             interval = s.getInt(TOTAL_CONTACT_INTERVAL);
         } else {
@@ -41,7 +41,7 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
         }
     }
 
-    public Malicious_Tes2(Malicious_Tes2 proto) {
+    public Malicious_Tes_Detection(Malicious_Tes_Detection proto) {
         resourcesList = new LinkedList<>();
         interval = proto.interval;
         lastRecord = proto.lastRecord;
@@ -57,27 +57,23 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
 
     @Override
     public void connectionDown(DTNHost thisHost, DTNHost peer) {
-        if (thisHost.toString().startsWith("mal")) {
-            ArrayList<Message> temp = new ArrayList<Message>(thisHost.getMessageCollection());
+        List<Message> rcvMsg = saveMsg.get(peer);
 
-            for (Message message : temp) {
-
-                if (thisHost != message.getFrom() && thisHost != message.getTo()) {
-//                        thisHost.deleteMessage(message.getId(), true);
-                    Random rand = new Random();
-                    int rng = rand.nextInt(2);
-                    switch (rng) {
-                        case 0:
-                            break;
-                        case 1:
-                            thisHost.deleteMessage(message.getId(), true);
-                            System.out.println("this ho : " + thisHost + " m : " + message);
-                            break;
-                    }
-                }
-
-            }
-        }
+//        try {
+//            for (Message readRcvMsg : rcvMsg) {
+//                if (thisHost.toString().startsWith("mal")) {
+//                    if (thisHost != readRcvMsg.getFrom() && thisHost != readRcvMsg.getTo()) {
+//                        Random rng = new Random();
+//                        int rand = rng.nextInt(2);
+//
+//                        if (rand == 0) {
+//                            thisHost.deleteMessage(readRcvMsg.toString(), true);
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//        }
     }
 
     @Override
@@ -98,10 +94,12 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
     @Override
     public boolean shouldSaveReceivedMessage(Message m, DTNHost thisHost, DTNHost from) {
 
-//        rcvMsg = saveMsg.get(from);
-//        rcvMsg.add(m);
-        return !thisHost.getRouter().hasMessage(m.getId());
+        rcvMsg = saveMsg.get(from);
+        rcvMsg.add(m);
 
+        //System.out.println(msgVerif(rcvMsg));
+
+        return true;
     }
 
     @Override
@@ -111,13 +109,13 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
 
     @Override
     public boolean shouldDeleteSentMessage(Message m, DTNHost otherHost) {
-//        System.out.println("oth : "+otherHost +" m : "+m);
+
         return true;
     }
 
     @Override
     public boolean shouldDeleteOldMessage(Message m, DTNHost hostReportingOld) {
-        return true;
+        return false;
     }
 
     @Override
@@ -127,7 +125,33 @@ public class Malicious_Tes2 implements RoutingDecisionEngineMalicious {
 
     @Override
     public RoutingDecisionEngineMalicious replicate() {
-        return new Malicious_Tes2(this);
+        return new Malicious_Tes_Detection(this);
     }
 
+//    public void msgVerif(List<Message> psn) {
+//        Map<List<String>, List<Message>> grupPesan = new HashMap<>();
+//        List<String> msgInGrup = new ArrayList<>();
+//
+//        try {
+//            for (Message m : psn) { //baca isi list psn satu persatu
+//                hashMsg = (List<String>) m.getProperty("hashEmpat"); //ambil property hash yang ada di tiap pesan
+//
+//                if (!grupPesan.containsKey(hashMsg)) { //cek tidak ada grup pesan dengan hash tertentu
+//                    pesan = new ArrayList<Message>(); // buat arraylist untuk menampung pesan dalam grup dengan hash yang baru
+//                } else {
+//                    pesan = grupPesan.get(hashMsg);    //jika ada, get hash dari grup pesan
+//                }
+//
+//                pesan.add(m); //tambahkan message dalam pesan
+//
+//                grupPesan.put(hashMsg, pesan); //tambahkan hash dan id pesan dalam grup pesan
+//
+//            }
+//
+//            String getMsggrup = grupPesan.get(hashMsg).toString();
+//            msgInGrup.add(getMsggrup);
+//        } catch (Exception e) {
+//        }
+//        return msgInGrup;
+//    }
 }

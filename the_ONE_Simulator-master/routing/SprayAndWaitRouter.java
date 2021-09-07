@@ -101,6 +101,7 @@ public class SprayAndWaitRouter extends ActiveRouter {
 		@SuppressWarnings(value = "unchecked")
 		List<Message> copiesLeft = sortByQueueMode(getMessagesWithCopiesLeft());
 		
+                //fase wait.
 		if (copiesLeft.size() > 0) {
 			/* try to send those messages */
 			this.tryMessagesToConnections(copiesLeft, getConnections());
